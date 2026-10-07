@@ -60,6 +60,20 @@ def hf_upload(folder: str | Path, repo_id: str, path_in_repo: str, retries: int 
     raise RuntimeError(f"HF upload failed after {retries} attempts: {last!r}")
 
 
+def _git_sha() -> str:
+    try:
+        import subprocess
+
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=Path(__file__).resolve().parents[2],
+                                       text=True).strip()
+    except Exception as e:
+        return f"unavailable: {e!r}"
+
+
+# Captured when the job imports drlab, so a deploy during a long run does not change the record.
+_SHA_AT_START = _git_sha()
+
+
 def env_info() -> dict:
     import transformers, peft  # noqa: E401
 
@@ -71,12 +85,5 @@ def env_info() -> dict:
         "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
         "host": os.uname().nodename,
     }
-    try:
-        import subprocess
-
-        info["git_sha"] = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], cwd=Path(__file__).resolve().parents[2], text=True
-        ).strip()
-    except Exception as e:
-        info["git_sha"] = f"unavailable: {e!r}"
+    info["git_sha"] = _SHA_AT_START
     return info

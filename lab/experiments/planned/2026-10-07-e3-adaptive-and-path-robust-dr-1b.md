@@ -73,4 +73,4 @@ What would make this run inconclusive (protocol failure, not a hypothesis test):
 ## Related
 
 - [E1](2026-10-07-e1-abliteration-without-base.md) and [E2](2026-10-07-e2-refusal-rebuild-geometry.md): the 8B studies that decide how to read this result.
-- [E1b path test](2026-10-07-e1b-vendor-posttraining-path.md): whether vendor post-training is separable along the same path.
+- [E1b path test](../failures/2026-10-07-e1b-vendor-posttraining-path.md): whether vendor post-training is separable along the same path.
