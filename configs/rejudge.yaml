@@ -6,7 +6,8 @@ models: []                          # empty = every *_generations.jsonl in bench
 skip_conds: [overrefusal_orbench]   # benign prompts: over-refusal is measured by keyword, not J1
 padcheck_n: 16                      # bs=1 vs batched agreement check before judging
 judge:
-  max_gpu_gb: 2.5                   # 3070: keep most of the 13B weights in CPU RAM (6.0 OOMed at bs 32); null = all on GPU
+  stream: true                      # 3070: weights in pinned CPU RAM, one layer at a time on the GPU
+  hidden_gb: 2.5                    # GPU memory for one group's hidden states
   bs: 16
 hydra:
   run:

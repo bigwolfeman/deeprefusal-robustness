@@ -2,7 +2,7 @@
 
 Reads `<bench_dir>/artifacts/<model>_generations.jsonl` and the J2 scores beside it, writes
 `<bench_dir>/<model>_metrics_j1.json` (counts only) and per-row labels to artifacts/. Runs on the
-3070 by streaming the 13B weights from CPU RAM (`judge.max_gpu_gb`). Protocol: E0 section 2,
+3070 by streaming the 13B weights layer by layer from CPU RAM (`judge.stream`). Protocol: E0 section 2,
 lab/experiments/algorithms/2026-10-07-refusal-eval-protocol.md.
 """
 
@@ -27,11 +27,11 @@ def padding_check(judge: HarmBenchJudge, rows: list[dict], n: int) -> None:
     .agents/postmortem/2026-10-07-gemma3-sdpa-left-padding.md). Raises on mismatch."""
     rows = rows[:: max(len(rows) // n, 1)][:n]  # spread over conditions, so lengths differ
     b, g = [r["prompt"] for r in rows], [r["out"] for r in rows]
-    lab1, p1 = zip(*[(lab[0], py[0]) for lab, py in (judge.classify([x], [y], bs=1) for x, y in zip(b, g))])
+    lab1, p1 = judge.classify(b, g, bs=1)
     labn, pn = judge.classify(b, g, bs=len(rows))
     dp = max(abs(x - y) for x, y in zip(p1, pn))
-    print(f"[rejudge] padding check: n={len(rows)} labels_equal={list(lab1) == labn} max|dp_yes|={dp:.4f}", flush=True)
-    if list(lab1) != labn or dp > 0.02:
+    print(f"[rejudge] padding check: n={len(rows)} labels_equal={lab1 == labn} max|dp_yes|={dp:.4f}", flush=True)
+    if lab1 != labn or dp > 0.02:
         raise RuntimeError(f"J1 batched scoring differs from bs=1 (max |dp_yes| {dp:.4f}); fix padding first")
 
 
@@ -42,7 +42,7 @@ def main(cfg: DictConfig) -> None:
                                        for p in (bench / "artifacts").glob("*_generations.jsonl"))
     if not names:
         raise FileNotFoundError(f"no generations under {bench / 'artifacts'}")
-    judge = HarmBenchJudge(max_gpu_gb=cfg.judge.max_gpu_gb)
+    judge = HarmBenchJudge(stream=cfg.judge.stream, hidden_gb=cfg.judge.hidden_gb)
     padding_check(judge, _read_jsonl(bench / "artifacts" / f"{names[0]}_generations.jsonl"), cfg.padcheck_n)
     for name in names:
         rows = _read_jsonl(bench / "artifacts" / f"{name}_generations.jsonl")
