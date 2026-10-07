@@ -115,7 +115,12 @@ class PathScaler:
 
 # ---------------------------------------------------------------------------- Prong A refit
 @torch.no_grad()
-def refit_subspace(model, tok, tpl, ablator: Ablator, fit_h, fit_b, k_max: int, min_ratio: float) -> dict:
+def refit_subspace(model, tok, tpl, ablator: Ablator, fit_h, fit_b, k_max: int, min_ratio: float,
+                   zero_dims: list[int], min_layer: int) -> dict:
+    """Add one direction per layer (l >= min_layer) where harmful/harmless stay separable with the
+    current subspace ablated everywhere. Massive-activation dims are zeroed first: without that the
+    refit direction is dominated by dim 1038 and ablating it breaks the model (prong_a attempt 1,
+    benign loss 470 -> 5776 after the first refit). r_hat stays in every layer."""
     was_training = model.training
     model.eval()
     n_eoi = eoi_token_count(tok, tpl)
@@ -127,13 +132,16 @@ def refit_subspace(model, tok, tpl, ablator: Ablator, fit_h, fit_b, k_max: int, 
     ablator.full()
     a = acts(fit_h) - acts(fit_b)
     ablator.off()
+    if zero_dims:
+        u[:, zero_dims] = 0
+        a[:, zero_dims] = 0
     new, added, ratios = [], 0, []
     for l, Q in enumerate(ablator.bases):
         r = a[l]
         r_perp = r - (r @ Q.T.to(r.device)) @ Q.to(r.device)
         ratio = (r_perp.norm() / u[l].norm().clamp_min(1e-6)).item()
         ratios.append(ratio)
-        if ratio >= min_ratio and Q.shape[0] < k_max:
+        if l >= min_layer and ratio >= min_ratio and Q.shape[0] < k_max:
             Q = torch.cat([Q.to(r.device), (r_perp / r_perp.norm())[None]], 0)
             added += 1
         new.append(Q)
@@ -268,7 +276,8 @@ def train(cfg: DictConfig) -> dict:
                    "tokens_per_s": parts["tokens"] / max(time.time() - ts, 1e-6),
                    "mem_gb": torch.cuda.max_memory_allocated() / 2**30, **path_log}
             if cfg.dr.adaptive.enabled and step % cfg.dr.adaptive.refit_every == 0:
-                r = refit_subspace(model, tok, tpl, ablator, fit_h, fit_b, cfg.dr.adaptive.k_max, cfg.dr.adaptive.min_ratio)
+                r = refit_subspace(model, tok, tpl, ablator, fit_h, fit_b, cfg.dr.adaptive.k_max, cfg.dr.adaptive.min_ratio,
+                                   dpack.get("zero_dims") or [], int(cfg.dr.adaptive.min_layer_frac * ablator.n_layers))
                 log.update({f"refit/{k}": v for k, v in r.items()})
             wandb.log(log, step=step)
             if step % 10 == 0:

@@ -56,6 +56,7 @@ dr:
     refit_every: 50
     k_max: 6
     min_ratio: 0.2
+    min_layer_frac: 0.25                # refit only layers >= L/4; r_hat stays in all layers
     n_fit: 64
 
 path:                                   # Prong B
