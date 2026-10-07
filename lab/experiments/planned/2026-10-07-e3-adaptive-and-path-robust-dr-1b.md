@@ -70,6 +70,12 @@ What would make this run inconclusive (protocol failure, not a hypothesis test):
 
 **Stop conditions.** One seed per model. If a decisive comparison is within 10 points of its threshold, retrain both models in that comparison with seeds 1 and 2 before the verdict.
 
+### Amendment 2026-10-07 02:50 CDT (no results seen for M2 to M4; predictions unchanged)
+
+- The first `prong_a` run (wandb `uj1osdk0`, commit `2e3b065`) was stopped at step 60. Its first refit did not zero the massive-activation dims, and benign loss jumped 470 → 5,776. The run uses `1e9a43f` instead: refit directions are outlier-zeroed, and refits apply only to layers ≥ L/4 (`dr.adaptive.min_layer_frac = 0.25`). `r̂` stays in all layers. The refit at step 50 added a direction to 20 layers, and loss at step 80 matched `dr_baseline` (331.9 vs 330.9).
+- The `bench` harness (`src/drlab/bench.py`, `configs/bench.yaml`) implements this Method's attacks plus J2, an OR-Bench-Hard over-refusal subset, and a 0-shot MMLU proxy (1,000 questions, not lm-eval-harness). J1 and lm-eval-harness capability are still to run on a larger GPU.
+- `dr_baseline` quick eval (keyword, diagnostic, not a verdict input): HarmBench refusal 0.99 with no attack, 0.74 with the original direction ablated. Harmless alpaca refusal 0.11.
+
 ## Related
 
 - [E1](2026-10-07-e1-abliteration-without-base.md) and [E2](2026-10-07-e2-refusal-rebuild-geometry.md): the 8B studies that decide how to read this result.
