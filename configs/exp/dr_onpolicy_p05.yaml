@@ -1,6 +1,6 @@
 # @package _global_
 # E4: faithful DeepRefusal recipe with on-policy responses (drlab.onpolicy), p = 0.5.
-# Plan: lab/experiments/planned/2026-10-07-e4-onpolicy-dr-1b.md
+# Plan: lab/experiments/failures/2026-10-07-e4-onpolicy-dr-1b.md
 run_name: dr_onpolicy_p05
 data:
   responses: onpolicy

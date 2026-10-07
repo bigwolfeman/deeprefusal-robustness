@@ -1,5 +1,5 @@
 # E4 benchmark: off-policy vs on-policy DeepRefusal-1B, same attacks and judges as E3.
-# Plan: lab/experiments/planned/2026-10-07-e4-onpolicy-dr-1b.md
+# Plan: lab/experiments/failures/2026-10-07-e4-onpolicy-dr-1b.md
 defaults:
   - bench
   - _self_

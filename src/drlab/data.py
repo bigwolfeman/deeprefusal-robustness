@@ -13,7 +13,7 @@ Deliberate deviations (recorded in each run's config):
 
 `data.responses` selects the response text: `offpolicy` (the recipe above: Llama-3 refusals, GPT
 answers) or `onpolicy` (same prompts and prefixes, responses written by the defended model, from
-`python -m drlab.onpolicy`; .agents/notes/proposed/feature/2026-10-07-onpolicy-dr-data.md).
+`python -m drlab.onpolicy`; .agents/notes/implemented/feature/2026-10-07-onpolicy-dr-data.md).
 """
 
 from __future__ import annotations

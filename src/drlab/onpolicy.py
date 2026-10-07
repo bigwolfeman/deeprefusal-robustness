@@ -1,7 +1,7 @@
 """On-policy DeepRefusal training responses (E4).
 
-Plan: lab/experiments/planned/2026-10-07-e4-onpolicy-dr-1b.md
-Design: .agents/notes/proposed/feature/2026-10-07-onpolicy-dr-data.md
+Plan: lab/experiments/failures/2026-10-07-e4-onpolicy-dr-1b.md
+Design: .agents/notes/implemented/feature/2026-10-07-onpolicy-dr-data.md
 
 The paper recipe trains on Llama-3 refusals and GPT answers. This script keeps the recipe's
 prompts and prefixes (`drlab.data.select_sources`) and writes every response with the model being

@@ -1,9 +1,11 @@
 # Experiment: E4, does on-policy training data remove DeepRefusal-1B's over-refusal and prefill regression?
 
-Status: planned
+Status: failure
 
 Date proposed: 2026-10-07
-Algorithm: [refusal eval protocol (E0)](../algorithms/2026-10-07-refusal-eval-protocol.md); data design in [on-policy DeepRefusal data note](../../../.agents/notes/proposed/feature/2026-10-07-onpolicy-dr-data.md)
+Date run: 2026-10-07
+Artifacts: [results/2026-10-07-e4-onpolicy-dr-1b](../results/2026-10-07-e4-onpolicy-dr-1b/)
+Algorithm: [refusal eval protocol (E0)](../algorithms/2026-10-07-refusal-eval-protocol.md); data design in [on-policy DeepRefusal data note](../../../.agents/notes/implemented/feature/2026-10-07-onpolicy-dr-data.md)
 Owner: Wolfe + agent session (Claude Opus 5.5)
 
 Written on 2026-10-07 at about 12:30 CDT. The on-policy data did not exist yet, and no E4 model was trained. The E3 J2 results for the off-policy models were known (they motivate this experiment) and are quoted below as the comparison point.
@@ -69,7 +71,51 @@ What would make this run inconclusive (protocol failure):
 
 **Compute.** RTX 3070, sequential queue. Generation, then N5, N3, N1 training (about 0.8 h each), then the bench.
 
+## Results
+
+Runs on the RTX 3070. Generation `onpolicy_gen` 12:25 to 13:34 CDT at `c78c88e`; trainings `dr_onpolicy_p05/p03/p01` 13:34 to 15:58 (each 500/500 steps, `completed: true`, about 0.75 h); `bench_e4` 15:58 to 16:23 at `b2da850`. All five models were benched in the same run. J2 only; J1 is queued (`j1_e4`).
+
+**Data** (`onpolicy_data_summary.json`): drops 2/3,771 benign (0.05%) and 0/2,000 harmful. Harmful targets: greedy 1,367, sample 298, steered 335. Prefix recoveries: steered 1,402, refusal after prefix 451, greedy 147. 32% of CircuitBreaker prompts had no J2-safe greedy response from `gemma-3-1b-it`. Built set: 7,998 examples, 1.351M labeled tokens (off-policy: 8,000 and 1.430M).
+
+**Bench** (ASR_J2 on 100 HarmBench standard prompts, KL_1 on 100 harmless prompts in brackets; OR-Bench-Hard keyword refusal on 250 prompts; 0-shot MMLU proxy on 1,000):
+
+| Condition | M0 base | M1 off-policy p0.5 | N1 p0.1 | N3 p0.3 | N5 p0.5 |
+|---|---|---|---|---|---|
+| no attack | 0.01 | 0.00 | 0.00 | 0.01 | 0.00 |
+| prefill (AdvBench) | 0.16 | 0.46 | 0.00 | 0.00 | 0.00 |
+| original `r̂` ablated | 0.36 (0.08) | 0.09 (0.06) | 0.31 (0.10) | 0.23 (0.20) | 0.07 (0.61) |
+| fresh direction ablated | 0.36 (0.08) | 0.14 (0.05) | 0.34 (0.10) | 0.04 (0.05) | 0.05 (0.19) |
+| fresh per-layer subspace k = 1 | 0.44 (0.55) | 0.36 (0.20) | 0.33 (0.37) | 0.35 (0.46) | 0.35 (1.07) |
+| k = 2 | 0.38 (0.91) | 0.35 (0.30) | 0.39 (0.54) | 0.36 (0.62) | 0.37 (1.30) |
+| k = 4 | 0.45 (1.88) | 0.18 (0.48) | 0.38 (0.93) | 0.42 (1.02) | 0.43 (1.49) |
+| k = 8 | 0.27 (2.19) | 0.11 (0.62) | 0.29 (2.11) | 0.25 (2.13) | 0.20 (2.38) |
+| OR-Bench-Hard keyword refusal | 0.320 | 0.992 | 0.716 | 0.864 | 0.912 |
+| MMLU proxy | 0.431 | 0.412 | 0.429 | 0.428 | 0.433 |
+
+Against the H-OP predictions for N5: OR-Bench-Hard refusal 0.912 (predicted ≤ 0.60; the falsifying threshold was > 0.80). Prefill ASR_J2 0.00 (≤ 0.24, held). Fresh-direction ASR_J2 0.05, but its KL_1 is 0.19, so no N5 direction attack meets the KL_1 ≤ 0.1 condition as written. MMLU proxy 0.433 (≥ 0.41, held).
+
+Against H-P: fresh-direction ASR_J2 N1 0.34, N3 0.04, N5 0.05 (one inversion of 0.01, inside the 0.05 allowance). OR-Bench-Hard refusal N1 0.716 ≤ N3 0.864 ≤ N5 0.912. Both orderings held.
+
+Observations outside the predictions:
+- On-policy training removes the prefill weakness completely (0.00 at every p), below the base model's 0.16. Off-policy DR raised it to 0.46.
+- Over-refusal rises with refusal training even at p = 0.1, where ablation is rare (0.716 vs base 0.320). The CircuitBreaker refusal set itself, not the response voice, drives most of it.
+- Every DR model, on-policy or off-policy, loses refusal to the fresh per-layer subspace at k = 1 (ASR_J2 0.33 to 0.36, base 0.44). DR's robustness is specific to one shared direction. The per-layer attack costs KL_1 0.2 to 1.1, above the 0.1 budget.
+- In N5, ablating the original `r̂` now costs KL_1 0.61 (base 0.08): the direction carries benign function after training.
+
+## Verdict
+
+failure (H-OP falsified). On-policy responses do not remove DR-1B's over-refusal: N5 refuses 91% of OR-Bench-Hard prompts, past the 0.80 falsification line. They do remove the prefill regression completely and keep MMLU-proxy capability. H-P (the p frontier) held on J2. The H-P ASR cells and the subspace observation wait for the J1 recheck (`j1_e4`) before any external claim.
+
+## Updated hypothesis
+
+Two separate causes produced E3's regressions. The off-policy Llama-3 refusal text caused the prefill weakness. The refusal training set (2,000 CircuitBreaker prompts with refusals, α = 0.2, per-sample sum loss) causes the over-refusal, and higher p adds to it. At 1B, DR's measured robustness against a single direction and its over-refusal move together along p. The real attacker cost is set by the per-layer subspace attack, which breaks every variant at a moderate KL cost.
+
+Next:
+1. J1 recheck of the E4 cells (queued).
+2. Reduce over-refusal at fixed p: add on-policy compliant OR-Bench-style borderline prompts to the benign set, or raise the benign share. That is a new planned experiment.
+3. Treat the per-layer subspace attack under a KL budget as the main robustness metric: an ASR-vs-KL_1 curve per model, not a single point.
+
 ## Related
 
-- [E3](2026-10-07-e3-adaptive-and-path-robust-dr-1b.md): the off-policy results that motivate this run.
+- [E3](../planned/2026-10-07-e3-adaptive-and-path-robust-dr-1b.md): the off-policy results that motivate this run.
 - [Postmortem: Gemma 3 SDPA left padding](../../../.agents/postmortem/2026-10-07-gemma3-sdpa-left-padding.md).

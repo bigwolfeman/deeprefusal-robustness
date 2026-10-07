@@ -1,5 +1,5 @@
 # On-policy DeepRefusal responses (E4): same prompts and prefixes as configs/data/dr.yaml,
-# responses written by model.name. Plan: lab/experiments/planned/2026-10-07-e4-onpolicy-dr-1b.md
+# responses written by model.name. Plan: lab/experiments/failures/2026-10-07-e4-onpolicy-dr-1b.md
 defaults:
   - data: dr
   - _self_
