@@ -15,6 +15,7 @@ dependencies = [
   "huggingface_hub",
   "safetensors",
   "pandas",
+  "sentencepiece",          # J1 (HarmBench Llama-2 classifier) tokenizer
 ]
 
 [build-system]
