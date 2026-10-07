@@ -16,3 +16,6 @@ __pycache__/
 venv/
 node_modules/
 .DS_Store
+
+# vlt memory config (machine-local absolute paths).
+vlt.toml
