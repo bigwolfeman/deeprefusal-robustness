@@ -13,7 +13,7 @@ from pathlib import Path
 import torch
 
 from drlab import prompts as P
-from drlab.directions import find_refusal_tokens, select_direction
+from drlab.directions import select_direction
 from drlab.hooks import Ablator
 from drlab.textgen import generate, is_refusal, refusal_rate
 from drlab.utils import save_json, save_jsonl
@@ -62,11 +62,9 @@ def quick_eval(model, tok, tpl, ablator: Ablator, dpack: dict, cfg, ckpt_dir: Pa
     # Attacker's view: re-extract a direction on the trained model (same E0 recipe, smaller sets).
     fit_h, val_h, _ = P.split_fit_val_test(P.harmful_behaviors("train"), 128, 32, 0, 0)
     fit_b, val_b, _ = P.split_fit_val_test(P.harmless_alpaca("train"), 128, 32, 0, 0)
-    try:
-        ref_ids = find_refusal_tokens(model, tok, tpl, fit_h, fit_b)
-    except RuntimeError as e:  # a model that never refuses has no refusal tokens; record, don't hide
-        res["fresh_direction_error"] = str(e)
-        ref_ids = None
+    # Reuse the source model's refusal-start tokens (as bench.py and path_test.py do). Re-deriving
+    # them fails on over-refusing models: "I" then also starts >5% of harmless answers.
+    ref_ids = dpack["refusal_ids"]
     if ref_ids is not None:
         sel = select_direction(model, tok, tpl, ablator, fit_h, fit_b, val_h, val_b, ref_ids,
                                zero_dims=dpack.get("zero_dims"))
