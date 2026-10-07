@@ -1,6 +1,7 @@
 # DeepRefusal training. Defaults = faithful paper recipe (section 5.1, Table 4: p = 0.5).
 # Variants live in configs/exp/*.yaml; select with `+exp=<name>`.
 defaults:
+  - data: dr
   - _self_
 
 root: /mnt/bigdata/deeprefusal
@@ -11,20 +12,6 @@ model:
   tokenizer: null          # null = same as model.name; Prong B uses the -it tokenizer for its chat template
   dtype: bfloat16
 direction_path: ${root}/directions/google__gemma-3-1b-it/direction.pt
-
-data:
-  seed: 42
-  cb_path: ${root}/data/circuit_breakers_train.json
-  xstest_path: ${root}/data/xstest_v2_completions_gpt4_gpteval.csv
-  overrefusal_repeat: 2                 # official: benign_train_data *= 2
-  benign_split: test_sft                # official: ultrachat_200k test_sft
-  benign_total: 4000                    # paper: 4,000 benign
-  benign_empty_instruction_prob: 0.5    # official switch_select = [0, 1]
-  n_harmful_prompts: 2000               # paper: 2,000 CircuitBreaker harmful
-  prefill_augmentations: 1
-  prefix_min_tokens: 20                 # paper Eq. 11: k ~ U[20, 25]
-  prefix_max_tokens: 25
-  max_len: 1024
 
 lora:                                   # paper: rank 16, alpha 16 (CircuitBreaker settings)
   r: 16

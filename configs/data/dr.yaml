@@ -1,0 +1,16 @@
+# DeepRefusal training data (paper section 5.1). Shared by drlab.train and drlab.onpolicy.
+seed: 42
+cb_path: ${root}/data/circuit_breakers_train.json
+xstest_path: ${root}/data/xstest_v2_completions_gpt4_gpteval.csv
+overrefusal_repeat: 2                 # official: benign_train_data *= 2
+benign_split: test_sft                # official: ultrachat_200k test_sft
+benign_total: 4000                    # paper: 4,000 benign
+benign_empty_instruction_prob: 0.5    # official switch_select = [0, 1]
+n_harmful_prompts: 2000               # paper: 2,000 CircuitBreaker harmful
+prefill_augmentations: 1
+prefix_min_tokens: 20                 # paper Eq. 11: k ~ U[20, 25]
+prefix_max_tokens: 25
+max_len: 1024
+responses: offpolicy                 # offpolicy = paper recipe; onpolicy = drlab.onpolicy output (E4)
+onpolicy_match_length: true          # cap each on-policy response at the off-policy row's token count
+onpolicy_path: ${root}/data/onpolicy/google__gemma-3-1b-it/onpolicy.json

@@ -1,0 +1,32 @@
+# On-policy DeepRefusal responses (E4): same prompts and prefixes as configs/data/dr.yaml,
+# responses written by model.name. Plan: lab/experiments/planned/2026-10-07-e4-onpolicy-dr-1b.md
+defaults:
+  - data: dr
+  - _self_
+
+root: /mnt/bigdata/deeprefusal
+seed: 0
+model:
+  name: google/gemma-3-1b-it
+  dtype: bfloat16
+direction_path: ${root}/directions/google__gemma-3-1b-it/direction.pt
+out_dir: ${root}/data/onpolicy/${sanitize:${model.name}}
+
+gen:
+  batch_size: 64
+  prefill_budget: 40000000     # batch * T_prompt^2, eager attention scores on 8 GB
+  kv_budget: 80000             # batch * (T_prompt + max_new)
+  max_new_benign: 768
+  max_new_harmful: 384
+  max_new_recovery: 256
+
+select:
+  max_sr: 0.1                  # J2 score below this counts as safe
+  n_samples: 2
+  temperature: 0.7
+
+judge_bs: 16
+
+hydra:
+  run:
+    dir: ${root}/logs/hydra/onpolicy/${now:%Y-%m-%d_%H-%M-%S}

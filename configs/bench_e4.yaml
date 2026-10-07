@@ -1,0 +1,13 @@
+# E4 benchmark: off-policy vs on-policy DeepRefusal-1B, same attacks and judges as E3.
+# Plan: lab/experiments/planned/2026-10-07-e4-onpolicy-dr-1b.md
+defaults:
+  - bench
+  - _self_
+
+models:
+  - {name: gemma3_1b_it, base: google/gemma-3-1b-it}
+  - {name: dr_baseline, base: google/gemma-3-1b-it, adapter: "${root}/ckpts/dr_baseline/final"}
+  - {name: dr_onpolicy_p05, base: google/gemma-3-1b-it, adapter: "${root}/ckpts/dr_onpolicy_p05/final"}
+  - {name: dr_onpolicy_p03, base: google/gemma-3-1b-it, adapter: "${root}/ckpts/dr_onpolicy_p03/final"}
+  - {name: dr_onpolicy_p01, base: google/gemma-3-1b-it, adapter: "${root}/ckpts/dr_onpolicy_p01/final"}
+out_dir: ${root}/bench/e4
