@@ -65,9 +65,9 @@ When `branch_worktree_policy.isolation` is `git_worktree`, the runner creates a 
 
 ### Toolkit
 
-Workflows live under `.agents/skills/`. Catalog: [.agents/skills/README.md](../../../.agents/skills/README.md). Root `AGENTS.md` names the toolkit and links. It does not copy procedures.
+Workflows live under `.agents/skills/`. Catalog: [.agents/skills/README.md](../../../skills/README.md). Root `AGENTS.md` names the toolkit and links. It does not copy procedures.
 
-Shipped campaign skills run from scope through audit and promotion. Campaign static contract: `lab/templates/campaign/`, schemas under `lab/schemas/`, `scripts/verify_campaign.py`. Runner: `scripts/campaign_runner/`, `scripts/run_campaign.py`. Cookbook: [.agents/cookbook/starting-a-campaign.md](../../../.agents/cookbook/starting-a-campaign.md), [.agents/cookbook/running-a-campaign.md](../../../.agents/cookbook/running-a-campaign.md).
+Shipped campaign skills run from scope through audit and promotion. Campaign static contract: `lab/templates/campaign/`, schemas under `lab/schemas/`, `scripts/verify_campaign.py`. Runner: `scripts/campaign_runner/`, `scripts/run_campaign.py`. Cookbook: [.agents/cookbook/starting-a-campaign.md](../../../cookbook/starting-a-campaign.md), [.agents/cookbook/running-a-campaign.md](../../../cookbook/running-a-campaign.md).
 
 ## Alternatives considered
 

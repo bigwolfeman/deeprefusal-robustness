@@ -1,4 +1,4 @@
-# E1c: fine lambda grid near 1 with J2. Plan: lab/experiments/planned/2026-10-07-e1c-posttraining-path-fine-grid.md
+# E1c: fine lambda grid near 1 with J2. Plan: lab/experiments/failures/2026-10-07-e1c-posttraining-path-fine-grid.md
 defaults:
   - path_test
   - _self_

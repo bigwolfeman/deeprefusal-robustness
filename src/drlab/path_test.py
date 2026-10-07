@@ -1,7 +1,7 @@
 """E1b: refusal versus chat ability along W(lambda) = W_pt + lambda * (W_it - W_pt).
 
 Plans: lab/experiments/failures/2026-10-07-e1b-vendor-posttraining-path.md (0.1 grid, keyword),
-lab/experiments/planned/2026-10-07-e1c-posttraining-path-fine-grid.md (fine grid, `judge: true` adds J2).
+lab/experiments/failures/2026-10-07-e1c-posttraining-path-fine-grid.md (fine grid, `judge: true` adds J2).
 """
 
 from __future__ import annotations

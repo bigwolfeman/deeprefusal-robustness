@@ -1,6 +1,6 @@
 """E3 benchmark harness: attacks without W_base, then the J2 judge.
 
-Plan and predictions: lab/experiments/planned/2026-10-07-e3-adaptive-and-path-robust-dr-1b.md
+Plan and predictions: lab/experiments/failures/2026-10-07-e3-adaptive-and-path-robust-dr-1b.md
 Two phases so the 3070 (8 GB) never holds the target model and the judge at once:
   1. generate: every attack condition for one model -> generations JSONL (local only).
   2. judge:    J2 scores -> metrics JSON (no completion text).

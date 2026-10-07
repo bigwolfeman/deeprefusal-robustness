@@ -1,4 +1,4 @@
-# E3 benchmark (attacks without W_base + J2). Plan: lab/experiments/planned/2026-10-07-e3-adaptive-and-path-robust-dr-1b.md
+# E3 benchmark (attacks without W_base + J2). Plan: lab/experiments/failures/2026-10-07-e3-adaptive-and-path-robust-dr-1b.md
 # Not yet covered here: J1 (needs ~26 GB), lm-eval-harness MMLU/GSM8K/ARC (a 0-shot MMLU proxy is), KL_32.
 root: /mnt/bigdata/deeprefusal
 seed: 0

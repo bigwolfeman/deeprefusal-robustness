@@ -102,20 +102,34 @@ Observations outside the predictions:
 - Every DR model, on-policy or off-policy, loses refusal to the fresh per-layer subspace at k = 1 (ASR_J2 0.33 to 0.36, base 0.44). DR's robustness is specific to one shared direction. The per-layer attack costs KL_1 0.2 to 1.1, above the 0.1 budget.
 - In N5, ablating the original `r̂` now costs KL_1 0.61 (base 0.08): the direction carries benign function after training.
 
+**J1 rescore** (`j1_e4`, 17:01 to 17:21 CDT at `47fe696`; padding check labels 16/16 equal, max margin error 0.09 nats). ASR_J1, KL_1 in brackets:
+
+| Arm | M0 base | M1 off-policy | N1 p0.1 | N3 p0.3 | N5 p0.5 |
+|---|---|---|---|---|---|
+| no attack | 0.14 | 0.01 | 0.07 | 0.02 | 0.01 |
+| prefill | 0.24 | 0.42 | 0.00 | 0.00 | 0.00 |
+| original `r̂` ablated | 0.75 (0.08) | 0.16 (0.06) | 0.80 (0.10) | 0.74 (0.20) | 0.36 (0.61) |
+| fresh direction | 0.75 (0.08) | 0.27 (0.05) | 0.81 (0.10) | 0.34 (0.05) | 0.16 (0.19) |
+| fresh per-layer subspace k = 1 | 0.85 (0.55) | 0.49 (0.20) | 0.83 (0.37) | 0.84 (0.46) | 0.83 (1.07) |
+| k = 2 | 0.80 (0.91) | 0.43 (0.30) | 0.82 (0.54) | 0.75 (0.62) | 0.80 (1.30) |
+| k = 4 | 0.77 (1.88) | 0.41 (0.48) | 0.84 (0.93) | 0.78 (1.02) | 0.80 (1.49) |
+| k = 8 | 0.58 (2.19) | 0.29 (0.62) | 0.64 (2.11) | 0.61 (2.13) | 0.61 (2.38) |
+
+J1 keeps the H-P ordering: fresh-direction ASR_J1 is N1 0.81 ≥ N3 0.34 ≥ N5 0.16. It makes the per-layer finding stronger: on-policy DR at every p gives no protection against the k = 1 per-layer subspace (0.83 to 0.84, base 0.85). Off-policy M1 holds that attack to 0.49, together with 0.99 over-refusal. J1 and J2 agree on 0.87 to 1.00 of rows where models refuse, and on 0.36 to 0.63 of rows on ablated arms (see the E0 amendment of 2026-10-07 evening).
+
 ## Verdict
 
-failure (H-OP falsified). On-policy responses do not remove DR-1B's over-refusal: N5 refuses 91% of OR-Bench-Hard prompts, past the 0.80 falsification line. They do remove the prefill regression completely and keep MMLU-proxy capability. H-P (the p frontier) held on J2. The H-P ASR cells and the subspace observation wait for the J1 recheck (`j1_e4`) before any external claim.
+failure (H-OP falsified). On-policy responses do not remove DR-1B's over-refusal: N5 refuses 91% of OR-Bench-Hard prompts, past the 0.80 falsification line. They do remove the prefill regression completely and keep MMLU-proxy capability. H-P (the p frontier) held on J2 and on the J1 recheck.
 
 ## Updated hypothesis
 
 Two separate causes produced E3's regressions. The off-policy Llama-3 refusal text caused the prefill weakness. The refusal training set (2,000 CircuitBreaker prompts with refusals, α = 0.2, per-sample sum loss) causes the over-refusal, and higher p adds to it. At 1B, DR's measured robustness against a single direction and its over-refusal move together along p. The real attacker cost is set by the per-layer subspace attack, which breaks every variant at a moderate KL cost.
 
 Next:
-1. J1 recheck of the E4 cells (queued).
-2. Reduce over-refusal at fixed p: add on-policy compliant OR-Bench-style borderline prompts to the benign set, or raise the benign share. That is a new planned experiment.
-3. Treat the per-layer subspace attack under a KL budget as the main robustness metric: an ASR-vs-KL_1 curve per model, not a single point.
+1. Reduce over-refusal at fixed p: add on-policy compliant OR-Bench-style borderline prompts to the benign set, or raise the benign share. That is a new planned experiment.
+2. Treat the per-layer subspace attack under a KL budget as the main robustness metric: an ASR-vs-KL_1 curve per model, not a single point.
 
 ## Related
 
-- [E3](../planned/2026-10-07-e3-adaptive-and-path-robust-dr-1b.md): the off-policy results that motivate this run.
+- [E3](2026-10-07-e3-adaptive-and-path-robust-dr-1b.md): the off-policy results that motivate this run.
 - [Postmortem: Gemma 3 SDPA left padding](../../../.agents/postmortem/2026-10-07-gemma3-sdpa-left-padding.md).

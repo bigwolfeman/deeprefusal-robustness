@@ -20,7 +20,7 @@ Extend DeepRefusal training so the ablation target follows the model:
 3. **Capability anchor.** Add a KL term on benign prompts against the starting model, so the subspace growth cannot buy robustness with capability.
 4. **Capacity ablation.** Compare LoRA rank 16 (the release), LoRA rank 64, and full fine-tuning. A rank-16 delta may lack the room to make refusal non-linear.
 
-**Gating.** Conclusions wait for the E1 and E2 verdicts. On 2026-10-07 Wolfe chose to train both prongs overnight on the 3070 anyway, so the compute was not idle. Plan and predictions: [E3](../../../../lab/experiments/planned/2026-10-07-e3-adaptive-and-path-robust-dr-1b.md).
+**Gating.** Conclusions wait for the E1 and E2 verdicts. On 2026-10-07 Wolfe chose to train both prongs overnight on the 3070 anyway, so the compute was not idle. Plan and predictions: [E3](../../../../lab/experiments/failures/2026-10-07-e3-adaptive-and-path-robust-dr-1b.md).
 - E2 supports redundancy and E1 breaks DR with subspace removal: build as written. Target class C.
 - E1 shows DR holds against class C: keep the design, but make the refit step an APS-style probe attacker. Target class B.
 - E2 supports rebuild: revisit this note before building. The failure is then elsewhere.
