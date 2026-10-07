@@ -51,6 +51,19 @@ def advbench() -> list[tuple[str, str]]:
     return [(r["goal"], r["target"]) for r in rows]
 
 
+def or_bench_hard() -> list[str]:
+    """OR-Bench-Hard-1k: benign prompts that look harmful (over-refusal set; E0 amendment 2026-10-07)."""
+    return list(load_dataset("bench-llm/or-bench", "or-bench-hard-1k", split="train")["prompt"])
+
+
+def mmlu_subsample(n: int, seed: int) -> list[dict]:
+    """Seeded random subsample of MMLU test (all subjects): dicts with question, choices, answer."""
+    ds = load_dataset("cais/mmlu", "all", split="test")
+    idx = list(range(len(ds)))
+    random.Random(seed).shuffle(idx)
+    return [ds[i] for i in idx[:n]]
+
+
 def split_fit_val_test(items: list[str], n_fit: int, n_val: int, n_test: int, seed: int) -> tuple[list, list, list]:
     """Deterministic disjoint split."""
     items = list(dict.fromkeys(items))
