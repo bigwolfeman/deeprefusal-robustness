@@ -22,30 +22,34 @@ def _read_jsonl(path: Path) -> list[dict]:
     return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
 
 
+MAX_MARGIN_ERR = 0.5  # nats; see padding_check
+
+
 def padding_check(judge: HarmBenchJudge, rows: list[dict], n: int) -> dict:
     """Left-padded batches must match one-at-a-time scoring (Gemma 3 + SDPA broke this:
     .agents/postmortem/2026-10-07-gemma3-sdpa-left-padding.md).
 
-    bf16 GPU kernels already differ with batch shape, so the bound is measured in the same run.
-    Pass: equal labels, and per row the padded-batch margin error <= 2 x that row's noise floor
-    (k unpadded copies in a batch of the same size) + 0.1 nats. A padding bug
-    (wrong mask or positions) gives errors of several nats and flips labels. Raises on failure."""
+    Pass: equal labels and every row's logit-margin error (yes - no) <= 0.5 nats. A padding bug
+    (wrong mask or positions) moves margins by several nats and flips labels. bf16 kernels differ
+    with batch shape: on the 3070 a padded batch gave errors up to 0.31 nats (a few bf16 steps on
+    logits near 8; 2026-10-07 run at e853fa8). Unpadded copies are reported as a reference only;
+    they keep each row's own length and kernel shape, so they underestimate that noise. Raises on
+    failure."""
     rows = rows[:: max(len(rows) // n, 1)][:n]  # spread over conditions, so lengths differ
     b, g = [r["prompt"] for r in rows], [r["out"] for r in rows]
     lab1, _, m1 = judge.classify(b, g, bs=1)
     labn, _, mn = judge.classify(b, g, bs=len(rows))
     k = len(rows)
     d_pad = [abs(x - y) for x, y in zip(m1, mn)]
-    # per row: k copies in one batch of size k (same shape as the padded batch, no padding)
+    # reference only: k unpadded copies per row in a batch of size k
     _, _, mc = judge.classify([x for x in b for _ in range(k)], [y for y in g for _ in range(k)], bs=k)
     d_noise = [max(abs(mc[i * k + j] - m1[i]) for j in range(k)) for i in range(k)]
-    bound = [2 * d + 0.1 for d in d_noise]
-    res = dict(n=k, labels_equal=lab1 == labn, n_over_bound=sum(p > q for p, q in zip(d_pad, bound)),
+    res = dict(n=k, labels_equal=lab1 == labn, max_margin_err_padded=max(d_pad), bound=MAX_MARGIN_ERR,
                margins_bs1=[round(x, 3) for x in m1], margin_err_padded=[round(x, 3) for x in d_pad],
                margin_err_unpadded=[round(x, 3) for x in d_noise])
     print(f"[rejudge] padding check: {res}", flush=True)
-    if lab1 != labn or res["n_over_bound"]:
-        raise RuntimeError(f"J1 batched scoring differs from bs=1 beyond the noise floor: {res}")
+    if lab1 != labn or max(d_pad) > MAX_MARGIN_ERR:
+        raise RuntimeError(f"J1 batched scoring differs from bs=1 beyond {MAX_MARGIN_ERR} nats or flips labels: {res}")
     return res
 
 
