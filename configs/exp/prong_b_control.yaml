@@ -1,0 +1,17 @@
+# @package _global_
+# Prong B control: identical to prong_b_path without the path-robust loss.
+run_name: prong_b_control
+model:
+  name: google/gemma-3-1b-pt
+  tokenizer: google/gemma-3-1b-it
+data:
+  benign_split: train_sft
+  benign_total: 20000                  # ~1.4k steps; finishes inside time_limit_h on the 3070
+lora:
+  r: 64
+  alpha: 64
+train:
+  time_limit_h: 6.0
+  save_every: 500
+path:
+  enabled: false

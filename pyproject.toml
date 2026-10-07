@@ -1,0 +1,25 @@
+[project]
+name = "drlab"
+version = "0.1.0"
+description = "DeepRefusal mechanistic analysis, attacks, and defenses"
+requires-python = ">=3.11"
+dependencies = [
+  "torch>=2.4",
+  "transformers>=4.56",
+  "peft>=0.13",
+  "datasets>=3.0",
+  "accelerate",
+  "hydra-core>=1.3",
+  "omegaconf",
+  "wandb",
+  "huggingface_hub",
+  "safetensors",
+  "pandas",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

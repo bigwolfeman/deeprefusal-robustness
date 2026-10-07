@@ -4,7 +4,7 @@ Status: proposed
 
 ## Problem
 
-DeepRefusal trains against one fixed refusal direction `r̂`, found offline before training. In the official code (`get_direction_ablation_hooks` in `src/main.py`), each hooked module (layer input, attention output, MLP output) is ablated in a forward pass with probability `ablation_prob` (default 0.05). Inside an ablated module, each token is ablated with the same probability, and only response tokens are eligible (`only_response=True`). So about p² = 0.25% of (module, response-token) cells are ablated, and prompt positions are never ablated. Weight abliteration removes the direction at every layer and every position at once. Two public attacks break the release:
+DeepRefusal trains against one fixed refusal direction `r̂`, found offline before training. In the official code (`get_direction_ablation_hooks` in `src/main.py`), each hooked module (layer input, attention output, MLP output) is ablated in a forward pass with probability `ablation_prob` (default 0.05). Inside an ablated module, each token is ablated with the same probability. `args.py` sets `only_response=False` by default, so prompt and padding positions are eligible too. (With `only_response=True` the mask would still be wrong: sequences are left-padded to 1024, but `response_start_idx` counts from the unpadded start.) So about p² = 0.25% of (module, position) cells are ablated per forward pass. Weight abliteration removes the direction at every layer and every position at once. Two public attacks break the release:
 
 - abliterix scales the weight delta toward the base model, then abliterates.
 - APS steers with per-layer probes.
@@ -16,7 +16,7 @@ Our threat model excludes the base model (see [constitution](../../../../docs/co
 Extend DeepRefusal training so the ablation target follows the model:
 
 1. **Growing ablation subspace.** Start with `S_0 = {r̂}`. Every N steps, refit the refusal directions on the current model under ablation of `S_t` (E2's `r'_l` procedure). Add the top-m new directions per layer to `S_t`, up to a cap `k_max`. Ablation hooks then project out the whole of `S_t`, with DeepRefusal's per-layer and per-token Bernoulli sampling.
-2. **Attacker-distribution steps.** With probability q per step, ablate `S_t` at every layer and every position at once, including prompt positions. This is what weight abliteration does at inference. With the official sampling (about 0.25% of response cells, no prompt cells), training never sees that case.
+2. **Attacker-distribution steps.** With probability q per step, ablate `S_t` at every layer and every position at once. This is what weight abliteration does at inference. With the official sampling (about 0.25% of cells), training almost never sees that case.
 3. **Capability anchor.** Add a KL term on benign prompts against the starting model, so the subspace growth cannot buy robustness with capability.
 4. **Capacity ablation.** Compare LoRA rank 16 (the release), LoRA rank 64, and full fine-tuning. A rank-16 delta may lack the room to make refusal non-linear.
 

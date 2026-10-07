@@ -42,8 +42,8 @@ Model chat template, no system prompt, greedy decoding, `max_new_tokens = 256`, 
 
 | Use | Set | n |
 |---|---|---|
-| Harmful, primary | HarmBench standard behaviors (`walledai/HarmBench`, standard) | 200 |
-| Harmful, comparison with abliterix | AdvBench (`walledai/AdvBench`) first 100, minus any prompt in the fit data | ≤ 100 |
+| Harmful, primary | HarmBench standard behaviors (official `harmbench_behaviors_text_all.csv` on GitHub, FunctionalCategory = standard) | 200 |
+| Harmful, comparison with abliterix | AdvBench (`llm-attacks` `harmful_behaviors.csv` on GitHub) first 100, minus any prompt in the fit data | ≤ 100 |
 | Over-refusal | XSTest safe prompts | 250 |
 | Benign drift | `mlabonne/harmless_alpaca` test[:100] | 100 |
 

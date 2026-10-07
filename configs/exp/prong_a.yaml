@@ -1,0 +1,8 @@
+# @package _global_
+# Prong A: adaptive subspace + attacker-distribution steps.
+# Design: .agents/notes/proposed/feature/2026-10-07-adaptive-deeprefusal.md
+run_name: prong_a
+dr:
+  full_prob: 0.1
+  adaptive:
+    enabled: true

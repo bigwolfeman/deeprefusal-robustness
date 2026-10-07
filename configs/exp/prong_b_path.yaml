@@ -1,0 +1,18 @@
+# @package _global_
+# Prong B: instruction-tune from the pretrained model so the LoRA delta is all of post-training,
+# with DeepRefusal and the path-robust loss on W_pt + lambda_l * delta_l.
+run_name: prong_b_path
+model:
+  name: google/gemma-3-1b-pt
+  tokenizer: google/gemma-3-1b-it
+data:
+  benign_split: train_sft
+  benign_total: 20000                  # ~1.4k steps; finishes inside time_limit_h on the 3070
+lora:
+  r: 64
+  alpha: 64
+train:
+  time_limit_h: 6.0
+  save_every: 500
+path:
+  enabled: true

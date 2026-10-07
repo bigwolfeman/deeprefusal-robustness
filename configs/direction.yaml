@@ -1,0 +1,25 @@
+# E0 refusal-direction extraction. Protocol: lab/experiments/algorithms/2026-10-07-refusal-eval-protocol.md
+model:
+  name: google/gemma-3-1b-it
+  dtype: bfloat16
+seed: 0
+n_fit: 128
+n_val: 32
+n_test: 50
+max_layer_frac: 0.8
+kl_max: 0.1
+outliers:
+  enabled: true
+  ratio: 10.0
+  min_layers: 3
+gate:
+  max_new_tokens: 96
+  min_induce: 0.6
+  min_drop: 0.5
+require_gate: true
+root: /mnt/bigdata/deeprefusal
+out_dir: ${root}/directions/${sanitize:${model.name}}
+artifact_dir: ${out_dir}/artifacts
+hydra:
+  run:
+    dir: ${root}/logs/hydra/direction/${now:%Y-%m-%d_%H-%M-%S}
