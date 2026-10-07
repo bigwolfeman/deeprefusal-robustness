@@ -1,0 +1,16 @@
+# E1b path test. Plan: lab/experiments/planned/2026-10-07-e1b-vendor-posttraining-path.md
+root: /mnt/bigdata/deeprefusal
+seed: 0
+pt_model: google/gemma-3-1b-pt
+it_model: google/gemma-3-1b-it
+direction_path: ${root}/directions/google__gemma-3-1b-it/direction.pt
+lambdas: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+n_chat: 100
+n_harm: 100
+chat_max_new_tokens: 128
+max_new_tokens: 96
+out_dir: ${root}/path_test/results
+artifact_dir: ${root}/path_test/artifacts
+hydra:
+  run:
+    dir: ${root}/logs/hydra/path_test/${now:%Y-%m-%d_%H-%M-%S}
