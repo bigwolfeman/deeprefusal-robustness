@@ -28,7 +28,7 @@ def mean_eoi_acts(model, tok, tpl, prompts: list[str], n_eoi: int, bs: int = 32)
     total = None
     for i in range(0, len(prompts), bs):
         enc = encode_prompts(tok, tpl, prompts[i:i + bs], model.device)
-        hs = model(**enc, output_hidden_states=True).hidden_states  # L+1 entries; [l] = input to layer l
+        hs = model(**enc, output_hidden_states=True, logits_to_keep=1).hidden_states  # [l] = input to layer l
         acts = torch.stack([hs[l][:, -n_eoi:, :].float() for l in range(L)], dim=2)  # [B, n_eoi, L, d]
         s = acts.sum(0)
         total = s if total is None else total + s
@@ -46,7 +46,7 @@ def outlier_dims(model, tok, tpl, prompts: list[str], ratio: float, min_layers: 
     acc, cnt = None, 0
     for i in range(0, len(prompts), bs):
         enc = encode_prompts(tok, tpl, prompts[i:i + bs], model.device)
-        hs = model(**enc, output_hidden_states=True).hidden_states
+        hs = model(**enc, output_hidden_states=True, logits_to_keep=1).hidden_states
         m = enc["attention_mask"].bool()
         a = torch.stack([hs[l][m].float().abs().sum(0) for l in range(L)])
         acc = a if acc is None else acc + a
@@ -61,7 +61,8 @@ def last_logprobs(model, tok, tpl, prompts: list[str], bs: int = 32) -> torch.Te
     out = []
     for i in range(0, len(prompts), bs):
         enc = encode_prompts(tok, tpl, prompts[i:i + bs], model.device)
-        out.append(F.log_softmax(model(**enc).logits[:, -1, :].float(), dim=-1))
+        # logits_to_keep=1: full [B, T, 262k] logits OOM the 3070 on long MMLU prompts
+        out.append(F.log_softmax(model(**enc, logits_to_keep=1).logits[:, -1, :].float(), dim=-1))
     return torch.cat(out)
 
 

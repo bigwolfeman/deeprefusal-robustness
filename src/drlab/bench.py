@@ -44,7 +44,7 @@ def last_eoi_acts(model, tok, tpl, prompts: list[str], bs: int = 32) -> torch.Te
     out = []
     for i in range(0, len(prompts), bs):
         enc = encode_prompts(tok, tpl, prompts[i:i + bs], model.device)
-        hs = model(**enc, output_hidden_states=True).hidden_states
+        hs = model(**enc, output_hidden_states=True, logits_to_keep=1).hidden_states
         out.append(torch.stack([hs[l][:, -1].float() for l in range(L)], 1).cpu())
     return torch.cat(out)
 
