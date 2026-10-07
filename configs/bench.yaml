@@ -1,0 +1,21 @@
+# E3 benchmark (attacks without W_base + J2). Plan: lab/experiments/planned/2026-10-07-e3-adaptive-and-path-robust-dr-1b.md
+# Not yet covered here: J1 (needs ~26 GB), MMLU/GSM8K/ARC (lm-eval-harness), OR-Bench over-refusal,
+# KL_32, and the Prong B interpolation attack (H-B). See the task list in the vlt thread.
+root: /mnt/bigdata/deeprefusal
+seed: 0
+direction_path: ${root}/directions/google__gemma-3-1b-it/direction.pt
+n_harm: 100
+n_kl: 100
+max_new_tokens: 128
+subspace_ks: [1, 2, 4, 8]
+only: []          # e.g. [dr_baseline]; empty = all
+models:
+  - {name: gemma3_1b_it, base: google/gemma-3-1b-it}
+  - {name: dr_baseline, base: google/gemma-3-1b-it, adapter: "${root}/ckpts/dr_baseline/final"}
+  - {name: prong_a, base: google/gemma-3-1b-it, adapter: "${root}/ckpts/prong_a/final"}
+  - {name: prong_b_control, base: google/gemma-3-1b-pt, tokenizer: google/gemma-3-1b-it, adapter: "${root}/ckpts/prong_b_control/final"}
+  - {name: prong_b_path, base: google/gemma-3-1b-pt, tokenizer: google/gemma-3-1b-it, adapter: "${root}/ckpts/prong_b_path/final"}
+out_dir: ${root}/bench/e3
+hydra:
+  run:
+    dir: ${root}/logs/hydra/bench/${now:%Y-%m-%d_%H-%M-%S}
