@@ -20,12 +20,16 @@ Extend DeepRefusal training so the ablation target follows the model:
 3. **Capability anchor.** Add a KL term on benign prompts against the starting model, so the subspace growth cannot buy robustness with capability.
 4. **Capacity ablation.** Compare LoRA rank 16 (the release), LoRA rank 64, and full fine-tuning. A rank-16 delta may lack the room to make refusal non-linear.
 
-**Gating.** Build this after E1 and E2 have verdicts.
+**Gating.** Conclusions wait for the E1 and E2 verdicts. On 2026-10-07 Wolfe chose to train both prongs overnight on the 3070 anyway, so the compute was not idle. Plan and predictions: [E3](../../../../lab/experiments/planned/2026-10-07-e3-adaptive-and-path-robust-dr-1b.md).
 - E2 supports redundancy and E1 breaks DR with subspace removal: build as written. Target class C.
 - E1 shows DR holds against class C: keep the design, but make the refit step an APS-style probe attacker. Target class B.
 - E2 supports rebuild: revisit this note before building. The failure is then elsewhere.
 
-**Model.** 1B class. The choice between Gemma-3-1B-it (continuity with the ECS-189G work) and Llama-3.2-1B-Instruct (same family as the official 8B release) is open.
+5. **Prong B: an entangled delta trained to be robust along the path.** abliterix's step 1 works because DeepRefusal is a pure-safety patch on a capable chat model. Prong B instead instruction-tunes from the pretrained model (`gemma-3-1b-pt`), so one LoRA delta carries both chat ability and safety. On a path step, every layer's LoRA scaling is multiplied by `λ_l ~ U[λ_min, 1]` (per layer, to cover per-layer attenuation), and the refusal loss, with DeepRefusal ablation, is added at that point. An attacker who attenuates the delta far enough to break refusal is left holding a model that cannot chat, so the remaining attack is fine-tuning (class D, where SEAM applies). A control run without the path loss isolates its effect. A cheap screen of whether vendor post-training is already separable: [E1b](../../../../lab/experiments/planned/2026-10-07-e1b-vendor-posttraining-path.md).
+
+**Model.** Gemma-3-1B (`-it` for the DeepRefusal baseline and Prong A; `-pt` start for Prong B), chosen by Wolfe on 2026-10-07. Implementation: `src/drlab/train.py`, configs `configs/exp/*.yaml`.
+
+**Paper settings that matter.** The paper's Table 4 finds p = 0.5 best. The official code defaults to 0.05, and the ECS-189G run used 0.05. At p = 0.5, about 25% of (site, position) cells are ablated per step. Our baseline uses 0.5.
 
 ## Alternatives considered
 
@@ -33,7 +37,7 @@ Extend DeepRefusal training so the ablation target follows the model:
 - **SEAM alone.** It makes harmful and benign gradients conflict, so it targets class D (fine-tuning). It does nothing against activation steering or weight edits. Kept for E4, after this defense exists.
 - **TAR (tamper-resistant safeguards).** Meta-learning against fine-tuning attacks. Also class D, and expensive. A candidate for E4.
 - **Full fine-tuning to hide the LoRA structure.** This hides the rank cliff that abliterix used, but under our threat model the attacker has no base to diff against anyway. It is obscurity, not defense. It stays only as the capacity ablation in step 4.
-- **Dynamic single direction.** The DeepRefusal authors report that re-estimating one direction during training was unstable. We keep `r̂` fixed and only add directions, which should be more stable. This is a risk, not a certainty.
+- **Dynamic single direction, and layer-wise directions.** The paper's Table 3 tests both on Llama-3-8B. Each does much worse against refusal-direction attacks than one static global direction (Refusal-Transfer ASR 69.3% and 74.5%, versus 0.4%). Prong A therefore keeps the global `r̂` in every layer's basis and only *adds* per-layer directions. It never replaces `r̂`. Table 3 is still evidence against Prong A, and the strongest prior risk for it.
 
 ## Acceptance criteria
 

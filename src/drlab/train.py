@@ -119,10 +119,13 @@ def refit_subspace(model, tok, tpl, ablator: Ablator, fit_h, fit_b, k_max: int, 
     was_training = model.training
     model.eval()
     n_eoi = eoi_token_count(tok, tpl)
+    # bs=1: no padding. The training model uses SDPA, which corrupts left-padded Gemma 3 rows.
+    # .agents/postmortem/2026-10-07-gemma3-sdpa-left-padding.md
+    acts = lambda xs: mean_eoi_acts(model, tok, tpl, xs, n_eoi, bs=1)[-1]
     ablator.off()
-    u = mean_eoi_acts(model, tok, tpl, fit_h, n_eoi)[-1] - mean_eoi_acts(model, tok, tpl, fit_b, n_eoi)[-1]
+    u = acts(fit_h) - acts(fit_b)
     ablator.full()
-    a = mean_eoi_acts(model, tok, tpl, fit_h, n_eoi)[-1] - mean_eoi_acts(model, tok, tpl, fit_b, n_eoi)[-1]
+    a = acts(fit_h) - acts(fit_b)
     ablator.off()
     new, added, ratios = [], 0, []
     for l, Q in enumerate(ablator.bases):

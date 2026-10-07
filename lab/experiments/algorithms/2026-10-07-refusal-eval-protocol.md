@@ -89,3 +89,15 @@ attack arm ──► edited model ──► generate (HarmBench, AdvBench, XSTes
 
 - [E1 abliteration without base](../planned/2026-10-07-e1-abliteration-without-base.md)
 - [E2 refusal rebuild geometry](../planned/2026-10-07-e2-refusal-rebuild-geometry.md)
+
+## Amendments
+
+### 2026-10-07: Gemma 3 adjustments (found during the first E0 run)
+
+- **Massive-activation dimensions are zeroed in every candidate direction.** A dimension is an outlier if its mean |h| over all prompt tokens is above 10× the layer's median dimension in at least 3 layers. Without this, Gemma 3 candidates are dominated by dimension 1038, and ablating them gives first-token KL of 20+ nats. The zeroed list is stored in `direction.pt` and reused by every later extraction on that model family. Detail: [postmortem](../../../.agents/postmortem/2026-10-07-gemma3-outlier-dims-refusal-direction.md).
+- **Left-padded forward passes use eager attention with explicit `position_ids`.** SDPA corrupts left-padded Gemma 3 rows in transformers 5.19. Detail: [postmortem](../../../.agents/postmortem/2026-10-07-gemma3-sdpa-left-padding.md).
+- **Refusal-start tokens are found empirically:** the greedy first tokens covering 80% of harmful fit prompts, each under 5% on harmless fit prompts. For `gemma-3-1b-it` this is the single token "I".
+- **The gate used keyword refusal on the 3070** (the judges do not fit in 8 GB). Every gate generation is saved, and coherent compliance and refusal were spot-checked. Rerun the gate with J2 before citing it.
+- **Over-refusal set.** The DeepRefusal training recipe trains on XSTest compliant completions, so XSTest cannot measure over-refusal for models trained with it. For those models, use a 250-prompt random subset of OR-Bench-Hard-1k (seed 0).
+
+First result: `gemma-3-1b-it` direction at layer 15, last template position, KL 0.060. Gate: harmful refusal 0.82 → 0.00 when ablated; harmless refusal 0.00 → 0.90 when added. Artifacts: `/mnt/bigdata/deeprefusal/directions/google__gemma-3-1b-it/` on the 3070.
