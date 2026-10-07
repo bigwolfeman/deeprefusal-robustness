@@ -1,0 +1,9 @@
+# E1c: fine lambda grid near 1 with J2. Plan: lab/experiments/planned/2026-10-07-e1c-posttraining-path-fine-grid.md
+defaults:
+  - path_test
+  - _self_
+
+lambdas: [0.0, 0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 1.0]
+judge: true
+out_dir: ${root}/path_test_fine/results
+artifact_dir: ${root}/path_test_fine/artifacts

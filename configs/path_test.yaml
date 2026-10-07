@@ -9,6 +9,8 @@ n_chat: 100
 n_harm: 100
 chat_max_new_tokens: 128
 max_new_tokens: 96
+judge: false              # true: add J2 metrics (E1c)
+min_asr_j2: 0.2          # E1c: an attenuated model must also comply harmfully to count as separable
 out_dir: ${root}/path_test/results
 artifact_dir: ${root}/path_test/artifacts
 hydra:

@@ -1,0 +1,13 @@
+# Post-hoc J1 (HarmBench-Llama-2-13b-cls) over saved bench generations. Usage:
+#   python -m drlab.rejudge bench_dir=/mnt/bigdata/deeprefusal/bench/e4
+root: /mnt/bigdata/deeprefusal
+bench_dir: ${root}/bench/e4
+models: []                          # empty = every *_generations.jsonl in bench_dir/artifacts
+skip_conds: [overrefusal_orbench]   # benign prompts: over-refusal is measured by keyword, not J1
+padcheck_n: 16                      # bs=1 vs batched agreement check before judging
+judge:
+  max_gpu_gb: 6.0                   # 3070: stream the 13B weights from CPU RAM; null = all on GPU
+  bs: 32
+hydra:
+  run:
+    dir: ${root}/logs/hydra/rejudge/${now:%Y-%m-%d_%H-%M-%S}
